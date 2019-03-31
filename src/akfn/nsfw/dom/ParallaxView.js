@@ -37,39 +37,43 @@ import RafManager from 'akfn/nsfw/managers/RafManager';
 import DisplayObject from 'akfn/nsfw/dom/DisplayObject';
 import SmartView from 'akfn/nsfw/dom/SmartView';
 
-import Vector2 from 'akfn/nsfw/math/Vector2';
-
 /**
  * 
  * Parallax View
  *
- * v2.0
+ * v2.2
+ * 
  */
 
 class ParallaxView extends SmartView {
 	
 	constructor(id, view, options = {}) {
+		const displayObject = new DisplayObject( view );
 
-		const displayObject = new DisplayObject( view, options );
+		const defaults = {
+			amplitude: 200,
+			smooth: .1,
+			depth: 1
+		};
 
-		super(id, displayObject.view);
+		super(id, displayObject.view, { ...defaults, ...options });
 
 		// view
 		this.displayObject = displayObject;
 
 		// params
-		this.interpolation = new Vector2(0,0);
+		this.interpolation = { x: 0, y: 0 };
 		this.distance = 0;
-		this.ratio = 0;
-
-		// options
-		const { amplitude, smooth, depth, ratio } = options;
-		this.options = { amplitude: amplitude || 200, smooth: smooth || .1, depth: depth || 1, ratio: ratio || 0 };
+		this.ratio = -.5; //@TODO: optional ?
+		this.viewHeight = this.view.offsetHeight;
 
 		this.locate();
 
 		// bindings
 		RafManager.bind( this.id, ::this.render );
+
+		// init
+		this.computeRatio();
 	}
 
 	/**
@@ -80,15 +84,20 @@ class ParallaxView extends SmartView {
 	 	
 	 	if( this.visibility ) {
 
-			this.distance = ( window.currentScrollTop + window.innerHeight) - this.offsetTop;
-			this.ratio = (Math.min(this.distance / window.innerHeight, 1) - .5 ) * this.options.depth;
+			this.computeRatio();
 
-			this.interpolation.y = this.ratio * -this.options.amplitude;
 		}
-
+		
+		this.interpolation.y = this.ratio * -this.options.amplitude;
 		this.displayObject.position.y += ( this.interpolation.y - this.displayObject.position.y ) * this.options.smooth;
-	 }
+	}
 
+
+	computeRatio() {
+
+		this.distance = ( window.currentScrollTop + window.innerHeight) - this.offsetTop;
+		this.ratio = ( Math.max( 0, Math.min(this.distance / (window.innerHeight + this.viewHeight), 1)) - .5 ) * this.options.depth; // OPTIM RATIO
+	}
 
 	/** 
 	 * Render
@@ -98,6 +107,12 @@ class ParallaxView extends SmartView {
 		this.parallax();
 
 		this.displayObject.render();
+	}
+
+	locate () {
+		
+		super.locate();
+		this.viewHeight = this.view.offsetHeight;
 	}
 
 	/**
