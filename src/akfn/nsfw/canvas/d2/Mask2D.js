@@ -79,7 +79,7 @@ class Mask2D extends CanvasFromImage {
 		this.ctx.beginPath();
 		this.draw(); // depends on mode
 		this.ctx.fill();
-		this.closePath();
+		this.ctx.closePath();
 
 		// draw Pic
 		this.ctx.globalCompositeOperation = this.blending;
@@ -102,20 +102,23 @@ class Mask2D extends CanvasFromImage {
 
 		const tl = new TimelineMax({onUpdate:this.render});
 
-		// square animation (left->right)
-		this.mask.w = 0;
-		this.mask.h = this.view.height;
+		if( this.mode === 'square' ) {
 
-		tl.to(this.mask, 2, {w:this.view.width, ease:Power2.easeInOut});
+			// square animation (left->right)
+			this.mask.w = 0;
+			this.mask.h = this.view.height;
 
-		/**
-		 * Sample code for circle mode
-		 *
-		 *	this.mask.x = this.view.width >> 1;
-		 *	this.mask.y = this.view.height >> 1;
-		 * 	tl.to( this.mask, 2, {r:this.view.width*2, ease:Power2.easeInOut});
-		 * 
-		 */
+			tl.to(this.mask, 2, {w:this.view.width, ease:Power2.easeInOut});
+
+		} else {
+
+			const hypotenuse = Math.sqrt( Math.pow(this.view.width, 2) + Math.pow( this.view.height, 2) ) * .5;
+
+			this.mask.x = this.view.width >> 1;
+		 	this.mask.y = this.view.height >> 1;
+		 	tl.to( this.mask, 2, {r: hypotenuse, ease:Power2.easeInOut});
+
+		}
 		
 	}
 
@@ -126,15 +129,12 @@ class Mask2D extends CanvasFromImage {
 
 		const tl = new TimelineMax({onUpdate:this.render});
 
-		// square
-		tl.to(this.mask, 2, {w:0, ease:Power2.easeInOut});
+		if( this.mode === 'square' ) {
+			tl.to(this.mask, 2, {w:0, ease:Power2.easeInOut});
+		} else {
+			tl.to( this.mask, 2, {r:0, ease:Power2.easeOut});
+		}
 
-		/**
-		 * Sample code for circle mode
-		 *
-		 * 	tl.to( this.mask, 2, {r:0, ease:Power2.easeOut});
-		 * 
-		 */
 	}
 
 
