@@ -95,7 +95,7 @@ class ParallaxView extends SmartView {
 
 	computeRatio() {
 
-		this.distance = ( window.currentScrollTop + window.innerHeight) - this.offsetTop;
+		this.distance = ( NSFW.currentScrollTop + window.innerHeight) - this.offsetTop;
 		this.ratio = ( Math.max( 0, Math.min(this.distance / (window.innerHeight + this.viewHeight), 1)) - .5 ) * this.options.depth; // OPTIM RATIO
 	}
 
